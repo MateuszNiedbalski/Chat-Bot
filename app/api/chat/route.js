@@ -2,11 +2,14 @@ import { NextResponse } from 'next/server' // Import NextResponse from Next.js f
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const systemPrompt = "You are a customer support assistant for Headstarter. Headstarter is a company that runs programmes from people to learn AI skills through project based learning, AI interviews and teaching people networking skills. You must answer under 50 words";
 
-  // Gemini model
-  const model = genAI.getGenerativeModel({model: "gemini-1.5-flash"});
+// Gemini model with systemInstruction
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  systemInstruction: systemPrompt,
+});
 
-// (Deprecated) const systemPrompt = You are an AI chatbot trying to support people for Headstarter. Headstarter is a company that runs programmes from people to learn AI skills through project based learning, AI interviews and teaching people networking skills";
 
 export async function POST(req) {
   const data = await req.json();
@@ -14,7 +17,7 @@ export async function POST(req) {
   // Instantiate chat request to the API using previous chat history
   const chat = model.startChat({
     history: [
-      ...data.slice(0, data.length - 1), // Omit user input from current history
+      ...data.slice(1, data.length - 1), // Omit user input from current history
     ],
     generationConfig: {
       maxOutputTokens: 100,
