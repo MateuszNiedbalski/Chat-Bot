@@ -3,5 +3,9 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  font-weight: 200;
 }
 
+h5{
+  font-weight: 200;
+}

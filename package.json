@@ -11,14 +11,18 @@
   "dependencies": {
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
+    "@fontsource/roboto": "^5.0.14",
     "@google-cloud/vertexai": "^1.4.0",
     "@google/generative-ai": "^0.16.0",
+    "@mui/icons-material": "^5.16.6",
     "@mui/material": "^5.16.6",
+    "@mui/styled-engine-sc": "^6.0.0-alpha.18",
     "next": "^14.2.5",
     "openai": "^4.55.0",
-    "react": "^18",
+    "react": "^18.3.1",
     "react-dom": "^18",
-    "react-markdown": "^9.0.1"
+    "react-markdown": "^9.0.1",
+    "styled-components": "^6.1.12"
   },
   "devDependencies": {
     "eslint": "^8",
