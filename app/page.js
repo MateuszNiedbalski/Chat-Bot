@@ -2,10 +2,15 @@
 
 import { Box, Button, Stack, TextField } from '@mui/material';
 import { useState, useRef, useEffect } from 'react';
+import Markdown from 'react-markdown';
 
 export default function Home() {
-  // FIX: SET INITIAL MESSAGE
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+    {
+      role: "model",
+      parts: [{ text: "Hi! I'm the Headstarter support assistant. How can I help you today?" }]
+    }
+  ]);
 
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false)
@@ -59,8 +64,8 @@ export default function Home() {
 
         result += text;
         return reader.read().then(processText);
-      }; 
-      
+      };
+
       await reader.read().then(processText)
 
     } catch (error) {
@@ -92,7 +97,7 @@ export default function Home() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
-  
+
   useEffect(() => {
     scrollToBottom()
   }, [messages])
@@ -104,15 +109,15 @@ export default function Home() {
         <Stack direction={'column'} spacing={2} flexGrow={1} overflow="auto" maxHeight="100%">
           {messages.map((message, index) => (
             <Box key={index} display="flex" justifyContent={message.role === 'model' ? 'flex-start' : 'flex-end'}>
-              <Box bgcolor={ message.role === 'model' ? 'primary.main' : 'secondary.main'} color="white" borderRadius={16} p={3}>
-                {message.parts[0].text}
+              <Box bgcolor={ message.role === 'model' ? 'primary.main' : 'secondary.main'} color="white" borderRadius={1} p={3}>
+                <Markdown>{message.parts[0].text}</Markdown>
               </Box>
             </Box>
           ))}
           <div ref={messagesEndRef} />
         </Stack>
         <Stack direction={'row'} spacing={2}>
-          <TextField label="Message" fullWidth value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={handleKeyPress} disabled={isLoading}></TextField>
+          <TextField label="Message" fullWidth value={message} placeholder='Say "Hello" to begin chatting!' onChange={(e) => setMessage(e.target.value)} onKeyPress={handleKeyPress} disabled={isLoading}></TextField>
           <Button variant="contained" onClick={sendMessage} disabled={isLoading}>
             Send
           </Button>
