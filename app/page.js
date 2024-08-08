@@ -1,16 +1,19 @@
 'use client'
 
 import { Box, Button, Stack, TextField } from '@mui/material';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Home() {
   // FIX: SET INITIAL MESSAGE
   const [messages, setMessages] = useState([]);
 
   const [message, setMessage] = useState("");
-
+  const [isLoading, setIsLoading] = useState(false)
   // Send message function
   const sendMessage = async () => {
+    if (!message.trim()) return;
+
+    setIsLoading(true)
     setMessage("");
     setMessages((messages) => [
       ...messages,
@@ -23,22 +26,22 @@ export default function Home() {
     ])
 
     // Sends a POST request to the server
-    const response = fetch('/api/chat', {
+    try{
+    const response = await fetch('/api/chat', {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify([...messages, { role: "user", parts: [{ text: message }] }])
-    }).then(async (res) => {
-      const reader = res.body.getReader();
+    });
+
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
 
       let result = "";
 
-      return reader.read().then(function processText({ done, value }) {
-        if (done) {
-          return result;
-        };
+      const processText = async({done, value}) => {
+        if (done) return result;
 
         const text = decoder.decode(value || new Uint8Array(), { stream: true}) // Decodes incoming input stream
         setMessages((messages) => {
@@ -54,11 +57,27 @@ export default function Home() {
           ]
         })
 
+        result += text;
         return reader.read().then(processText);
-      })
-    })
+      }; 
+      
+      await reader.read().then(processText)
 
+    } catch (error) {
+      console.error("Error sending message", error);
+
+      setMessages((messages) => [
+        ...messages.slice(0, messages.length - 1), // Remove the placeholder
+        {
+          role: 'model',
+          parts: [{ text: "An error occurred while sending the message." }], // Corrected the error message
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
 
   const handleKeyPress = (event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -66,6 +85,17 @@ export default function Home() {
       sendMessage();
     }
   };
+
+  //auto scrolling feature
+  const messagesEndRef = useRef(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+  
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   // UI
   return (
@@ -79,10 +109,11 @@ export default function Home() {
               </Box>
             </Box>
           ))}
+          <div ref={messagesEndRef} />
         </Stack>
         <Stack direction={'row'} spacing={2}>
-          <TextField label="Message" fullWidth value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={handleKeyPress}></TextField>
-          <Button variant="contained" onClick={sendMessage}>
+          <TextField label="Message" fullWidth value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={handleKeyPress} disabled={isLoading}></TextField>
+          <Button variant="contained" onClick={sendMessage} disabled={isLoading}>
             Send
           </Button>
         </Stack>
