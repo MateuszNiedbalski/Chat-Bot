@@ -8,9 +8,23 @@ import Avatar from '@mui/material/Avatar';
 import { styled } from '@mui/material/styles';
 import Badge from '@mui/material/Badge';
 import Rating from '@mui/material/Rating';
+import { connectDB } from '@/utils/db';
+import {useSession, signIn, signOut} from 'next-auth/react'
+import GoogleIcon from '@mui/icons-material/Google';
 
 
 export default function Home() {
+  const [username, setUsername] = useState("");
+  const [aImage, setImage] = useState("/user.png");
+  const {data: session} = useSession()
+
+  useEffect(() => {
+    if (session && session.user) {
+        setUsername(session.user.name);
+        setImage(session.user.image);
+    }
+}, [session]);
+
   const [messages, setMessages] = useState([
     {
       role: "model",
@@ -163,7 +177,7 @@ export default function Home() {
           {messages.map((message, index) => (
             <Box key={index} display="flex" justifyContent={message.role === 'model' ? 'flex-start' : 'flex-end'}>
               <Stack direction={message.role === 'model' ? 'row' : 'row-reverse'}>
-              <Avatar src={message.role==='model' ? '/modelavatar.jpg' : '/user.png'} />
+              <Avatar src={message.role==='model' ? '/modelavatar.jpg' : aImage} />
               <Box bgcolor={ message.role === 'model' ? '#9ef7f1' : '#C5C6C7'} color="#1F2833" borderRadius={1} p={3}>
                 <Markdown>{message.parts[0].text}</Markdown>
                 {message.role === 'model' && (
@@ -181,6 +195,22 @@ export default function Home() {
           <TextField label="Message" fullWidth value={message} placeholder='Say "Hello" to begin chatting!' onChange={(e) => setMessage(e.target.value)} onKeyPress={handleKeyPress} disabled={isLoading} sx = {{'& .MuiInputBase-input': { color: '#C5C6C7' }, '& .MuiInputLabel-root': { color: '#C5C6C7' }, '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': { borderColor: '#C5C6C7' }, '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#00d1c4', color: '#00d1c4' },'& .MuiInputLabel-root': { color: '#C5C6C7',},'& .MuiInputLabel-root.Mui-focused': {color: '#00d1c4',}}}></TextField>
           <Button variant="contained" onClick={sendMessage} disabled={isLoading} sx = {{bgcolor: '#00635d', color: '#C5C6C7', '&:hover': { backgroundColor: '#00d1c4',}}} ><SendIcon  /></Button>
         </Stack>
+        {!session ? (
+  <Button 
+    onClick={() => signIn('google')} 
+    startIcon={<GoogleIcon />} 
+    variant="contained" 
+    sx={{ color: '#0B0C10', backgroundColor: '#C5C6C7', '&:hover': { backgroundColor: '#00d1c4',} }}>
+    Sign In With Google
+  </Button>
+) : (
+  <Button 
+    onClick={() => signOut()} 
+    variant="contained" 
+    sx={{ color: '#C5C6C7', backgroundColor: '#00635d', '&:hover': { backgroundColor: '#00d1c4' } }}>
+    Sign Out
+  </Button>
+)}
       </Stack>
     </Box>
   );
